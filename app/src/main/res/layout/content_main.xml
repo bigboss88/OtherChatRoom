@@ -21,7 +21,7 @@
         app:layout_constraintVertical_bias="0.213" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btn_Connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -47,7 +47,7 @@
         android:ems="10"
         android:inputType="number"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button"
+        app:layout_constraintEnd_toStartOf="@+id/btn_Connect"
         app:layout_constraintHorizontal_bias="0.444"
         app:layout_constraintStart_toEndOf="@+id/lbl_EnterPeer"
         app:layout_constraintTop_toTopOf="parent"

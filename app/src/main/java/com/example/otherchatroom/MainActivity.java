@@ -1,6 +1,8 @@
 package com.example.otherchatroom;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -40,6 +42,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         avPeers = (TextView) findViewById(R.id.lbl_AvPeers);
+        peerNum = (EditText) findViewById(R.id.txt_PeerNum);
+        connectButton = (Button) findViewById(R.id.btn_Connect);
+        connectButton.setOnClickListener(this);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 
         //change in list of available peers
@@ -89,7 +94,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-
+        int butid = v.getId();
+        if(butid == connectButton.getId()){
+            int index = Integer.parseInt(peerNum.getText().toString());
+            connect(index);
+        }
     }
 
     WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
@@ -132,6 +141,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onPause(){
         super.onPause();
         unregisterReceiver(rec);
+    }
+
+    public void connect(int index) {
+        final WifiP2pDevice device = peers.get(index);
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        config.wps.setup = WpsInfo.PBC;
+
+        p2p.connect(chan, config, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(MainActivity.this,"Connection Worked",Toast.LENGTH_SHORT).show();
+                connectedPeers.add(device);
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Toast.makeText(MainActivity.this,"Connection failed retry",Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }
