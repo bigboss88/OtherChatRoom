@@ -6,7 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.util.Log;
 
 public class P2PReceiver extends BroadcastReceiver {
     private MainActivity activity;
@@ -20,16 +22,9 @@ public class P2PReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)){
-            int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE,-1);
-            if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED){
-            }
-            else{
 
-            }
-        }
 
-        else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)){
+        if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)){
             //peer list has changed
             if (p2pMan != null){
                 p2pMan.requestPeers(chan, activity.peerListListener);
@@ -38,6 +33,9 @@ public class P2PReceiver extends BroadcastReceiver {
 
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)){
             //connection state has changed
+            WifiP2pGroup group = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_GROUP);
+            activity.updateConList(group);
+            //p2pMan.requestConnectionInfo(chan,activity.connectionInfoListener);
         }
 
         else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)){

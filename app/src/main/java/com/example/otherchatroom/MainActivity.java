@@ -5,12 +5,15 @@ import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -37,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText message;
     private Button send;
     private TextView log;
+    private Button dbg_Con;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +49,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         avPeers = (TextView) findViewById(R.id.lbl_AvPeers);
         peerNum = (EditText) findViewById(R.id.txt_PeerNum);
         connectButton = (Button) findViewById(R.id.btn_Connect);
+        log = (TextView) findViewById((R.id.lbl_MsgLog));
+        dbg_Con = (Button) findViewById(R.id.btn_SeeCon);
+        dbg_Con.setOnClickListener(this);
         connectButton.setOnClickListener(this);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 
@@ -51,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
 
         //state of Wi-Fi P2P connectivity has changed
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 
         //this device has changed
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
@@ -99,6 +106,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int index = Integer.parseInt(peerNum.getText().toString());
             connect(index);
         }
+
+        else if(butid == dbg_Con.getId()){
+            String str = "";
+
+            for (WifiP2pDevice device: connectedPeers){
+                Log.d("Connected Device",device.deviceName);
+                str += device.deviceName;
+                str+='\n';
+            }
+            Toast.makeText(getApplicationContext(),str,Toast.LENGTH_SHORT).show();
+        }
     }
 
     WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
@@ -132,6 +150,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     };
 
+    WifiP2pManager.ConnectionInfoListener connectionInfoListener = new WifiP2pManager.ConnectionInfoListener() {
+        @Override
+        public void onConnectionInfoAvailable(WifiP2pInfo info) {
+            Toast.makeText(MainActivity.this,"A connection came",Toast.LENGTH_SHORT).show();
+        }
+    };
+
     public void onResume(){
         super.onResume();
 
@@ -144,7 +169,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void connect(int index) {
-        final WifiP2pDevice device = peers.get(index);
+        if(index < 0 || index > peers.size()){
+            Toast.makeText(MainActivity.this,"Invalid entry",Toast.LENGTH_SHORT).show();
+            return;
+        }
+         final WifiP2pDevice device = peers.get(index);
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
         config.wps.setup = WpsInfo.PBC;
@@ -153,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onSuccess() {
                 Toast.makeText(MainActivity.this,"Connection Worked",Toast.LENGTH_SHORT).show();
-                connectedPeers.add(device);
+                //connectedPeers.add(device);
             }
 
             @Override
@@ -161,6 +190,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this,"Connection failed retry",Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void updateConList(WifiP2pGroup group){
+        Collection<WifiP2pDevice> con_ls = group.getClientList();
+        if(group != null){
+            if(group.isGroupOwner()){
+
+                connectedPeers.clear();
+                connectedPeers.addAll(con_ls);
+            }
+
+            else{
+                connectedPeers.clear();
+                connectedPeers.add(group.getOwner());
+                connectedPeers.addAll(con_ls);
+            }
+        }
+        Log.d("Added Peer Size",""+con_ls.size());
+        if(group.getOwner() != null && group != null){
+            Log.d(" group owner", group.getOwner().deviceName);
+        }
+        Toast.makeText(MainActivity.this,"Updated Peer List",Toast.LENGTH_SHORT).show();
     }
 
 }
