@@ -23,14 +23,14 @@ public class P2PReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-
+        //if the available peer list changes request the new list
         if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)){
             //peer list has changed
             if (p2pMan != null){
                 p2pMan.requestPeers(chan, activity.peerListListener);
             }
         }
-
+        //when the connection status changes(new device or a device disconnected) update the list of connected peers
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)){
             //connection state has changed
             WifiP2pGroup group = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_GROUP);
