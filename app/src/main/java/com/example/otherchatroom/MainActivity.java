@@ -9,6 +9,7 @@ import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, Window.Callback {
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2pManager p2p;
     private WifiP2pManager.Channel chan;
@@ -42,11 +44,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button send;
     private TextView log;
     private Button dbg_Con;
+    private String log_str;
+    private MessageAsyncTask send_Msg;
+    private ServerThread server;
+    private WifiP2pInfo info;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //setting up UI elements and what not
+        log_str="";
+        server = new ServerThread(this);
+        server.setDaemon(true);
+        server.start();
         avPeers = (TextView) findViewById(R.id.lbl_AvPeers);
         peerNum = (EditText) findViewById(R.id.txt_PeerNum);
         connectButton = (Button) findViewById(R.id.btn_Connect);
@@ -54,7 +64,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dbg_Con = (Button) findViewById(R.id.btn_SeeCon);
         dbg_Con.setOnClickListener(this);
         connectButton.setOnClickListener(this);
-
+        send = (Button) findViewById(R.id.btn_Send);
+        send.setOnClickListener(this);
+        userName = (EditText) findViewById(R.id.txt_UserName);
+        message = (EditText) findViewById(R.id.txt_Msg);
         //Adding actions to the intent filter so the P2PReceiver knows what to do
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 
@@ -127,6 +140,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 str+='\n';
             }
             Toast.makeText(getApplicationContext(),str,Toast.LENGTH_SHORT).show();
+        }
+
+        else if(butid == send.getId()){
+            send_Msg = new MessageAsyncTask(this,connectedPeers,info);
+            send_Msg.execute(userName.getText().toString()+": "+message.getText().toString());
         }
     }
 
@@ -230,6 +248,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d(" group owner", group.getOwner().deviceName);
         }
         Toast.makeText(MainActivity.this,"Updated Peer List",Toast.LENGTH_SHORT).show();
+    }
+
+    public void updateLog(String msg){
+        log_str+=msg+'\n';
+        log.setText(log_str);
+    }
+
+    public void setInfo(WifiP2pInfo i){
+        info = i;
     }
 
 }

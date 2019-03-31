@@ -138,24 +138,34 @@
 
     <TextView
         android:id="@+id/lbl_MsgLog"
-        android:layout_width="391dp"
+        android:layout_width="369dp"
         android:layout_height="140dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:scrollIndicators="right"
+        android:scrollHorizontally="false"
         android:text="Messages"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_Send" />
+        app:layout_constraintTop_toBottomOf="@+id/btn_Send"
+        app:layout_constraintVertical_bias="0.0"
+        tools:maxLines="10"
+        tools:scrollHorizontally="false" />
 
     <Button
         android:id="@+id/btn_SeeCon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="44dp"
         android:onClick="onClick"
         android:text="See Con"
-        tools:layout_editor_absoluteX="14dp"
-        tools:layout_editor_absoluteY="36dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </android.support.constraint.ConstraintLayout>
