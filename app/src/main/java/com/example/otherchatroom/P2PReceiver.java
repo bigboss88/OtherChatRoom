@@ -5,11 +5,13 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
+import android.widget.Toast;
 
 public class P2PReceiver extends BroadcastReceiver {
     private MainActivity activity;
@@ -35,14 +37,21 @@ public class P2PReceiver extends BroadcastReceiver {
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)){
             //connection state has changed
             WifiP2pGroup group = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_GROUP);
+           // activity.updateNetwork(group.getNetworkName(),group.getPassphrase());
             activity.updateConList(group);
             WifiP2pInfo info = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO);
             activity.setInfo(info);
-            //p2pMan.requestConnectionInfo(chan,activity.connectionInfoListener);
+            activity.updateDevice(info.isGroupOwner);
+            if(info.groupFormed && !info.isGroupOwner) {
+                activity.sendIp();
+                Log.d("Sent IP","Sent IP");
+                //p2pMan.requestConnectionInfo(chan,activity.connectionInfoListener);
+            }
         }
 
-        else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)){
 
+        else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)){
+            WifiP2pDevice device = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
         }
         else {
 

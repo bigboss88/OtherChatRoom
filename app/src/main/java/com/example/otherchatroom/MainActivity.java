@@ -1,6 +1,8 @@
 package com.example.otherchatroom;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -14,6 +16,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -48,15 +51,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MessageAsyncTask send_Msg;
     private ServerThread server;
     private WifiP2pInfo info;
+    private SendIpAsyncTask send_ip;
+    private String[] networkInfo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //setting up UI elements and what not
-        log_str="";
-        server = new ServerThread(this);
-        server.setDaemon(true);
-        server.start();
+
         avPeers = (TextView) findViewById(R.id.lbl_AvPeers);
         peerNum = (EditText) findViewById(R.id.txt_PeerNum);
         connectButton = (Button) findViewById(R.id.btn_Connect);
@@ -257,6 +259,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void setInfo(WifiP2pInfo i){
         info = i;
+    }
+    public void sendIp(){
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        send_ip = new SendIpAsyncTask(this,this.info,ip);
+        send_ip.execute();
+    }
+
+    public void updateDevice(boolean isOwner){
+        startServer(isOwner);
+    }
+
+    public void startServer(boolean blah){
+        server = new ServerThread(this,blah);
+        server.setDaemon(true);
+        server.start();
+    }
+
+    public void updateNetwork(String name,String pass){
+        Log.d("Network Stuff",name+" "+pass);
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + name + "\"";
+        conf.preSharedKey = "\""+ pass +"\"";
+        wm.addNetwork(conf);
+        List<WifiConfiguration> list = wm.getConfiguredNetworks();
+        for( WifiConfiguration i : list ) {
+            if(i.SSID != null && i.SSID.equals("\"" + name + "\"")) {
+                wm.disconnect();
+                wm.enableNetwork(i.networkId, true);
+                wm.reconnect();
+                break;
+            }
+        }
     }
 
 }
